@@ -1,3 +1,4 @@
+from fastapi import FastAPI, HTTPException, Request, Query
 """
 High School Management System API
 
@@ -13,6 +14,18 @@ from pathlib import Path
 
 app = FastAPI(title="Mergington High School API",
               description="API for viewing and signing up for extracurricular activities")
+# ...既存のエンドポイント定義の一番下に追加...
+
+@app.delete("/activities/{activity_name}/signup")
+def unregister_from_activity(activity_name: str, email: str = Query(...)):
+    """Unregister a student from an activity"""
+    if activity_name not in activities:
+        raise HTTPException(status_code=404, detail="Activity not found")
+    activity = activities[activity_name]
+    if email not in activity["participants"]:
+        raise HTTPException(status_code=404, detail="Participant not found")
+    activity["participants"].remove(email)
+    return {"message": f"Unregistered {email} from {activity_name}"}
 
 # Mount the static files directory
 current_dir = Path(__file__).parent
@@ -21,6 +34,42 @@ app.mount("/static", StaticFiles(directory=os.path.join(Path(__file__).parent,
 
 # In-memory activity database
 activities = {
+    "Soccer Team": {
+        "description": "Team practices, skill drills, and inter-school matches",
+        "schedule": "Mondays and Wednesdays, 4:00 PM - 5:30 PM",
+        "max_participants": 18,
+        "participants": ["liam@mergington.edu", "ava@mergington.edu"]
+    },
+    "Track and Field": {
+        "description": "Running, jumping, and throwing events with conditioning",
+        "schedule": "Tuesdays and Thursdays, 4:00 PM - 5:30 PM",
+        "max_participants": 24,
+        "participants": ["noah@mergington.edu", "mia@mergington.edu"]
+    },
+    "School Band": {
+        "description": "Instrument practice and ensemble performances",
+        "schedule": "Wednesdays, 3:30 PM - 5:00 PM",
+        "max_participants": 25,
+        "participants": ["lucas@mergington.edu", "amelia@mergington.edu"]
+    },
+    "Drama Club": {
+        "description": "Acting workshops and stage production rehearsals",
+        "schedule": "Fridays, 3:30 PM - 5:30 PM",
+        "max_participants": 16,
+        "participants": ["henry@mergington.edu", "isabella@mergington.edu"]
+    },
+    "Debate Team": {
+        "description": "Public speaking, argumentation, and debate competitions",
+        "schedule": "Tuesdays, 3:30 PM - 5:00 PM",
+        "max_participants": 14,
+        "participants": ["elijah@mergington.edu", "charlotte@mergington.edu"]
+    },
+    "Math Olympiad": {
+        "description": "Advanced problem solving and math competition training",
+        "schedule": "Thursdays, 3:30 PM - 5:00 PM",
+        "max_participants": 15,
+        "participants": ["james@mergington.edu", "harper@mergington.edu"]
+    },
     "Chess Club": {
         "description": "Learn strategies and compete in chess tournaments",
         "schedule": "Fridays, 3:30 PM - 5:00 PM",
@@ -61,6 +110,9 @@ def signup_for_activity(activity_name: str, email: str):
 
     # Get the specific activity
     activity = activities[activity_name]
+
+    # Validate student is not already signed up
+
 
     # Add student
     activity["participants"].append(email)

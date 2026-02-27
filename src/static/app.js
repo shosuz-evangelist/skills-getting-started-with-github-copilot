@@ -1,3 +1,60 @@
+function renderActivityCard(activity, name) {
+  const card = document.createElement('div');
+  card.className = 'activity-card';
+
+  const spotsLeft = activity.max_participants - activity.participants.length;
+
+  card.innerHTML = `
+    <h4>${name}</h4>
+    <p>${activity.description}</p>
+    <p><strong>Schedule:</strong> ${activity.schedule}</p>
+    <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
+    <div class="participants-section">
+      <h4>Participants</h4>
+      <ul class="participants-list">
+        ${
+          activity.participants && activity.participants.length > 0
+            ? activity.participants.map(p => `
+                <li style="list-style-type:none;display:flex;align-items:center;gap:0.5em;">
+                  <span>${p}</span>
+                  <span class="delete-participant" title="Remove" data-activity="${name}" data-email="${p}" style="cursor:pointer;color:#ef4444;font-size:1.1em;">&#128465;</span>
+                </li>
+              `).join('')
+            : '<li style="list-style-type:none;"><em>No participants yet</em></li>'
+        }
+      </ul>
+    </div>
+  `;
+
+  // 削除アイコンのイベントリスナーを追加
+  setTimeout(() => {
+    card.querySelectorAll('.delete-participant').forEach(icon => {
+      icon.addEventListener('click', function(e) {
+        const activityName = this.getAttribute('data-activity');
+        const email = this.getAttribute('data-email');
+        unregisterParticipant(activityName, email);
+      });
+    });
+  }, 0);
+
+  return card;
+}
+
+function unregisterParticipant(activityName, email) {
+  fetch(`/activities/${encodeURIComponent(activityName)}/signup?email=${encodeURIComponent(email)}`, {
+    method: 'DELETE',
+  })
+    .then(res => {
+      if (!res.ok) throw new Error('Failed to unregister');
+      return res.json();
+    })
+    .then(() => {
+      loadActivities();
+    })
+    .catch(() => {
+      alert('Failed to unregister participant.');
+    });
+}
 document.addEventListener("DOMContentLoaded", () => {
   const activitiesList = document.getElementById("activities-list");
   const activitySelect = document.getElementById("activity");
@@ -15,18 +72,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Populate activities list
       Object.entries(activities).forEach(([name, details]) => {
-        const activityCard = document.createElement("div");
-        activityCard.className = "activity-card";
-
-        const spotsLeft = details.max_participants - details.participants.length;
-
-        activityCard.innerHTML = `
-          <h4>${name}</h4>
-          <p>${details.description}</p>
-          <p><strong>Schedule:</strong> ${details.schedule}</p>
-          <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
-        `;
-
+        const activityCard = renderActivityCard(details, name);
         activitiesList.appendChild(activityCard);
 
         // Add option to select dropdown
@@ -62,6 +108,7 @@ document.addEventListener("DOMContentLoaded", () => {
         messageDiv.textContent = result.message;
         messageDiv.className = "success";
         signupForm.reset();
+        fetchActivities(); // 参加登録後にリストを更新
       } else {
         messageDiv.textContent = result.detail || "An error occurred";
         messageDiv.className = "error";
