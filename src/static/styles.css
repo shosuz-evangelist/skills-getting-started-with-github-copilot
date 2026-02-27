@@ -1,3 +1,43 @@
+/* 参加者セクションのスタイル */
+.participants-section {
+  margin-top: 1em;
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 0.75em 1em;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+
+.participants-section h4 {
+  margin: 0 0 0.5em 0;
+  font-size: 1em;
+  color: #2563eb;
+  letter-spacing: 0.02em;
+}
+
+.participants-list {
+  margin: 0;
+  padding-left: 0;
+  color: #374151;
+  font-size: 0.98em;
+}
+
+.participants-list li {
+  margin-bottom: 0.2em;
+  list-style-type: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.delete-participant {
+  cursor: pointer;
+  color: #ef4444;
+  font-size: 1.1em;
+  transition: color 0.15s;
+}
+.delete-participant:hover {
+  color: #b91c1c;
+}
 * {
   box-sizing: border-box;
   margin: 0;
